@@ -142,6 +142,8 @@ services:
       GETFLIX_SEED_HOURS: ${GETFLIX_SEED_HOURS:-24}
       # Path inside the qBittorrent container, Getflix only forwards it.
       GETFLIX_SAVE_PATH: ${GETFLIX_SAVE_PATH:-/data/getflix}
+      # Completed downloads are streamed from here when you click them.
+      GETFLIX_DOWNLOAD_ROOT: ${GETFLIX_DOWNLOAD_ROOT:-/data}
       GETFLIX_CATEGORY: ${GETFLIX_CATEGORY:-}
       GETFLIX_TAGS: ${GETFLIX_TAGS:-getflix}
       GETFLIX_CATEGORIES: ${GETFLIX_CATEGORIES:-}
@@ -149,6 +151,9 @@ services:
       GETFLIX_DEBUG: ${GETFLIX_DEBUG:-false}
       GETFLIX_HOST: 0.0.0.0
       GETFLIX_PORT: "5000"
+    volumes:
+      # Read only access to the finished downloads, for playback in VLC.
+      - ./downloads:/data:ro
     ports:
       - "${GETFLIX_BIND_ADDRESS:-127.0.0.1}:${GETFLIX_PORT:-5000}:5000"
     restart: unless-stopped

@@ -76,6 +76,11 @@ class Config:
     tags: tuple[str, ...] = ("getflix",)
     categories: tuple[str, ...] = field(default_factory=tuple)
 
+    #: Where the downloads are mounted, as Getflix sees them.
+    download_root: str = "/data"
+    #: The same directory as qBittorrent reports it (for host installations).
+    qbittorrent_download_root: str = "/data"
+
     host: str = "127.0.0.1"
     port: int = 5000
     debug: bool = False
@@ -101,6 +106,11 @@ class Config:
             category=_get_str("GETFLIX_CATEGORY"),
             tags=_get_list("GETFLIX_TAGS") or ("getflix",),
             categories=_get_list("GETFLIX_CATEGORIES"),
+            download_root=_get_str("GETFLIX_DOWNLOAD_ROOT", "/data") or "/data",
+            qbittorrent_download_root=_get_str(
+                "GETFLIX_QBITTORRENT_DOWNLOAD_ROOT", "/data"
+            )
+            or "/data",
             host=_get_str("GETFLIX_HOST", "127.0.0.1") or "127.0.0.1",
             port=_get_int("GETFLIX_PORT", 5000),
             debug=_get_bool("GETFLIX_DEBUG", False),

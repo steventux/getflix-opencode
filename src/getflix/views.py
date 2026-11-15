@@ -7,12 +7,30 @@ page - no client side framework required.
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 from typing import Any
 
-from flask import Blueprint, current_app, jsonify, render_template, request
+from flask import (
+    Blueprint,
+    Response,
+    abort,
+    current_app,
+    jsonify,
+    render_template,
+    request,
+    send_file,
+    url_for,
+)
+from werkzeug.utils import secure_filename
 
 from .config import Config
 from .fuzzy import media_type, rank_hits
+from .library import (
+    VIDEO_EXTENSIONS,
+    PlayableFileNotFound,
+    content_type_for,
+    resolve_playable_file,
+)
 from .qbittorrent import (
     QBittorrentClient,
     QBittorrentError,
@@ -417,6 +435,78 @@ def delete_torrent(torrent_hash: str) -> str:
     except QBittorrentError as exc:
         log.warning("Deleting %s failed: %s", torrent_hash, exc)
     return downloads()
+
+
+# ---------------------------------------------------------------------------
+# playback of completed downloads
+# ---------------------------------------------------------------------------
+def _completed_torrent(torrent_hash: str) -> Torrent:
+    """Look up a finished torrent, abort when it cannot be played."""
+    client = _client()
+    try:
+        torrents = client.torrents_info()
+    except QBittorrentError as exc:
+        log.warning("Looking up %s failed: %s", torrent_hash, exc)
+        abort(503, "qBittorrent is not reachable")
+
+    for torrent in torrents:
+        if torrent.hash.lower() != torrent_hash.lower():
+            continue
+        if not torrent.is_complete:
+            abort(409, "The download has not finished yet")
+        return torrent
+
+    abort(404, "Unknown torrent")
+
+
+def _playable_file(torrent: Torrent) -> Path:
+    cfg = _config()
+    # qBittorrent may report the path from a different mount point.
+    qbt_root = (
+        cfg.qbittorrent_download_root
+        if cfg.qbittorrent_download_root != cfg.download_root
+        else None
+    )
+    try:
+        return resolve_playable_file(
+            torrent.content_path, cfg.download_root, qbittorrent_root=qbt_root
+        )
+    except PlayableFileNotFound as exc:
+        log.info("No playable file for %s: %s", torrent.hash, exc)
+        abort(404, str(exc))
+
+
+@bp.get("/play/<torrent_hash>/playlist.m3u")
+def torrent_playlist(torrent_hash: str) -> Response:
+    """A tiny M3U playlist, VLC opens it with the stream inside."""
+    torrent = _completed_torrent(torrent_hash)
+    _playable_file(torrent)  # fail now instead of handing VLC a dead URL
+
+    stream_url = url_for(
+        "getflix.torrent_stream", torrent_hash=torrent.hash, _external=True
+    )
+    title = torrent.name.replace("\r", " ").replace("\n", " ")
+    body = f"#EXTM3U\n#EXTINF:-1,{title}\n{stream_url}\n"
+    filename = secure_filename(torrent.name) or "getflix"
+    if Path(filename).suffix.lower() in VIDEO_EXTENSIONS:
+        filename = Path(filename).stem
+    response = current_app.response_class(body, mimetype="audio/x-mpegurl")
+    response.headers["Content-Disposition"] = f'attachment; filename="{filename}.m3u"'
+    return response
+
+
+@bp.get("/play/<torrent_hash>")
+def torrent_stream(torrent_hash: str) -> Response:
+    """Stream a completed file, with the range support a player needs."""
+    torrent = _completed_torrent(torrent_hash)
+    path = _playable_file(torrent)
+    return send_file(
+        path,
+        mimetype=content_type_for(path),
+        as_attachment=False,
+        download_name=path.name,
+        conditional=True,
+    )
 
 
 @bp.post("/torrents/<torrent_hash>/seed")

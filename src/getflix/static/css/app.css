@@ -679,6 +679,18 @@ kbd {
   white-space: nowrap;
 }
 
+.download-name-link {
+  color: var(--text);
+  text-decoration: none;
+  text-decoration-color: var(--border);
+}
+
+.download-name-link:hover,
+.download-name-link:focus-visible {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
 .download-state {
   flex: none;
   font-size: 12px;

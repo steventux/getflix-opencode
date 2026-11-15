@@ -53,3 +53,11 @@ def test_every_service_joins_the_same_network():
 def test_the_subnet_is_pinned():
     """The subnet is also used for the qBittorrent authentication bypass."""
     assert "subnet: ${GETFLIX_DOCKER_SUBNET:-172.28.0.0/16}" in _compose()
+
+
+def test_getflix_can_read_the_downloads_for_playback():
+    """Completed downloads are streamed, so Getflix needs the files too."""
+    services_block = _compose().split("\nnetworks:\n", 1)[0]
+    getflix = services_block.split("\n  getflix:\n", 1)[1]
+    assert "./downloads:/data:ro" in getflix
+    assert "GETFLIX_DOWNLOAD_ROOT: ${GETFLIX_DOWNLOAD_ROOT:-/data}" in getflix

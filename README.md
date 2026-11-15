@@ -26,6 +26,9 @@ download with one click. Progress bars update live while you keep searching.
 - **Seed for a day.** Torrents are added with a maximum seeding time of 24
   hours (1440 minutes) so qBittorrent stops them afterwards. Existing
   torrents can be given the same limit with the *Seed 24h* button.
+- **Play finished downloads.** The name of a completed download is a link to
+  a small `.m3u` playlist, which VLC opens by default - the video streams
+  straight from Getflix.
 
 ## Requirements
 
@@ -66,6 +69,8 @@ cp .env.example .env
 | `GETFLIX_CATEGORY` | – | Optional qBittorrent category |
 | `GETFLIX_TAGS` | `getflix` | Comma separated qBittorrent tags |
 | `GETFLIX_CATEGORIES` | – | Only list these qBittorrent search categories |
+| `GETFLIX_DOWNLOAD_ROOT` | `/data` | Download directory as Getflix sees it |
+| `GETFLIX_QBITTORRENT_DOWNLOAD_ROOT` | `/data` | The same directory as qBittorrent reports it |
 | `GETFLIX_HOST` / `GETFLIX_PORT` | `127.0.0.1` / `5000` | Where Getflix listens |
 | `GETFLIX_SECRET_KEY` | random | Fixed Flask session secret (optional) |
 | `GETFLIX_DEBUG` | `false` | Enable the Flask debugger and auto reload |
@@ -83,6 +88,41 @@ Then open <http://127.0.0.1:5000>.
 > Run qBittorrent behind a VPN. The [Docker](#docker) section below starts a
 > complete stack (Getflix + qBittorrent with an IP leak killswitch) with a
 > single command.
+
+## Playing finished downloads
+
+When a download has finished, its name in the Downloads panel becomes a link.
+Clicking it downloads a tiny `.m3u` playlist that points at the file. VLC is
+the default handler for playlists on most desktops, so the video opens in VLC
+and is streamed by Getflix - no copy of a 40 GB remux ends up in the browser
+cache.
+
+Getflix serves the file itself and therefore has to see the download
+directory:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `GETFLIX_DOWNLOAD_ROOT` | `/data` | The download directory as Getflix sees it |
+| `GETFLIX_QBITTORRENT_DOWNLOAD_ROOT` | `/data` | The same directory as qBittorrent reports it |
+
+The Docker stack mounts `./downloads` read only at `/data` in both containers,
+so nothing has to be configured. When Getflix runs on the host instead:
+
+```bash
+# the directory the downloads are stored in
+GETFLIX_DOWNLOAD_ROOT=/home/you/Downloads
+# only when qBittorrent reports paths like /data/... (it runs in a container)
+GETFLIX_QBITTORRENT_DOWNLOAD_ROOT=/data
+```
+
+Only files of completed torrents are served, and only from inside
+`GETFLIX_DOWNLOAD_ROOT`. Range requests are supported, so seeking in VLC
+works. A multi file torrent plays its largest video file.
+
+If clicking the name only saves the playlist, open the downloaded `.m3u` once
+and VLC takes over. The stream itself is available at
+`http://127.0.0.1:5000/play/<info hash>`, which can also be opened with
+*Media -> Open Network Stream* in VLC.
 
 ## Docker
 
@@ -331,6 +371,8 @@ browser ──htmx──▶ Flask ──requests──▶ qBittorrent WebUI
 | `GET /downloads` | The Downloads panel (active + completed) |
 | `POST /torrents/<hash>/{pause,resume,seed}` | Torrent controls |
 | `DELETE /torrents/<hash>` | Removes a torrent |
+| `GET /play/<hash>/playlist.m3u` | Playlist for the player of a completed download |
+| `GET /play/<hash>` | Streams the file (range requests supported) |
 | `GET /api/status` | JSON status, handy for debugging |
 | `GET /healthz` | Health check of the container |
 

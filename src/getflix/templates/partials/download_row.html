@@ -1,6 +1,14 @@
 <li class="download" id="torrent-{{ t.hash }}">
   <div class="download-head">
-    <span class="download-name" title="{{ t.name }}">{{ t.name }}</span>
+    {% if t.is_complete %}
+      <a
+        class="download-name download-name-link"
+        href="{{ url_for('getflix.torrent_playlist', torrent_hash=t.hash) }}"
+        title="Play {{ t.name }} in VLC"
+      >{{ t.name }}</a>
+    {% else %}
+      <span class="download-name" title="{{ t.name }}">{{ t.name }}</span>
+    {% endif %}
     <span class="download-state state-{{ t.state | lower }}">{{ t.state | state_label }}</span>
   </div>
 
