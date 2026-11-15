@@ -1,0 +1,75 @@
+<li class="download" id="torrent-{{ t.hash }}">
+  <div class="download-head">
+    <span class="download-name" title="{{ t.name }}">{{ t.name }}</span>
+    <span class="download-state state-{{ t.state | lower }}">{{ t.state | state_label }}</span>
+  </div>
+
+  <div class="progress-track progress-track-thin">
+    <div
+      class="progress-fill {{ 'progress-complete' if t.is_complete else 'progress-active' }}"
+      style="width: {{ (t.progress * 100) | round(1) }}%"
+      role="progressbar"
+      aria-valuenow="{{ (t.progress * 100) | round(1) }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    ></div>
+  </div>
+
+  <div class="download-meta">
+    <span class="meta-strong">{{ (t.progress * 100) | round(1) }}%</span>
+    <span>{{ t.dlspeed | human_speed }} down</span>
+    <span>{{ t.upspeed | human_speed }} up</span>
+    {% if t.eta %}<span>ETA {{ t.eta | human_eta }}</span>{% endif %}
+    <span>{{ t.num_seeders }}S / {{ t.num_leechers }}L</span>
+    {% if t.size %}<span>{{ t.size | human_size }}</span>{% endif %}
+    {% if t.seeding_time_limit and t.seeding_time_limit > 0 %}
+      <span class="meta-badge" title="Maximum seeding time">
+        seeds for {{ (t.seeding_time_limit / 60) | round | int }}h
+      </span>
+    {% endif %}
+  </div>
+
+  <div class="download-actions">
+    {% if t.is_complete %}
+      <button
+        class="button button-small"
+        type="button"
+        hx-post="{{ url_for('getflix.pause_torrent', torrent_hash=t.hash) }}"
+        hx-target="#downloads-panel"
+        hx-swap="outerHTML"
+      >
+        Pause
+      </button>
+    {% else %}
+      <button
+        class="button button-small"
+        type="button"
+        hx-post="{{ url_for('getflix.resume_torrent', torrent_hash=t.hash) }}"
+        hx-target="#downloads-panel"
+        hx-swap="outerHTML"
+      >
+        Resume
+      </button>
+    {% endif %}
+    <button
+      class="button button-small"
+      type="button"
+      hx-post="{{ url_for('getflix.seed_torrent', torrent_hash=t.hash) }}"
+      hx-target="#downloads-panel"
+      hx-swap="outerHTML"
+      title="Set the maximum seeding time to {{ seed_hours }} hours"
+    >
+      Seed {{ seed_hours }}h
+    </button>
+    <button
+      class="button button-small button-danger"
+      type="button"
+      hx-delete="{{ url_for('getflix.delete_torrent', torrent_hash=t.hash) }}"
+      hx-target="#downloads-panel"
+      hx-swap="outerHTML"
+      hx-confirm="Remove this torrent from qBittorrent?"
+    >
+      Remove
+    </button>
+  </div>
+</li>

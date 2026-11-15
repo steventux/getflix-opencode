@@ -1,0 +1,41 @@
+[project]
+name = "getflix-opencode"
+version = "0.1.0"
+description = "Fuzzy search for torrents on a local qBittorrent instance, with an HTMX front end."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "flask>=3.0.0",
+    "gunicorn>=23.0.0",
+    "requests>=2.31.0",
+    "rapidfuzz>=3.6.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.scripts]
+getflix = "getflix.__main__:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "ruff>=0.6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/getflix"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+ignore = ["B008"]

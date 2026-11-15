@@ -1,0 +1,69 @@
+<li class="result" id="result-{{ r.id }}">
+  <div class="result-main">
+    <div class="result-info">
+      <a
+        class="result-title"
+        href="{{ r.hit.details_url or r.hit.site_url or r.hit.download_url }}"
+        target="_blank"
+        rel="noopener noreferrer"
+        title="{{ r.hit.file_name }}"
+      >
+        {{ r.hit.file_name }}
+      </a>
+      <div class="result-meta">
+        <span class="chip chip-{{ r.media_type }}">
+          {% if r.media_type == 'tv' %}TV series{% elif r.media_type == 'movie' %}Movie{% else
+          %}Video{% endif %}
+        </span>
+        <span class="meta-strong" title="Seeders">
+          {{ r.hit.seeders }} {{ 'seeder' if r.hit.seeders == 1 else 'seeders' }}
+        </span>
+        <span title="Leechers">{{ r.hit.leechers }} leechers</span>
+        {% if r.hit.file_size > 0 %}
+          <span>{{ r.hit.file_size | human_size }}</span>
+        {% endif %}
+        {% if r.hit.category %}
+          <span>{{ r.hit.category }}</span>
+        {% endif %}
+        {% if r.hit.site_url %}
+          <span class="meta-site">{{ r.hit.site_url | host_from_url }}</span>
+        {% endif %}
+      </div>
+    </div>
+
+    <form
+      class="result-action"
+      hx-post="{{ url_for('getflix.add_torrent') }}"
+      hx-target="#result-{{ r.id }}"
+      hx-swap="outerHTML"
+    >
+      <input type="hidden" name="result_id" value="{{ r.id }}" />
+      <input type="hidden" name="url" value="{{ r.hit.download_url }}" />
+      <input type="hidden" name="name" value="{{ r.hit.file_name }}" />
+      <button
+        type="submit"
+        id="download-btn-{{ r.id }}"
+        class="button {{ 'button-done' if r.torrent else 'button-primary' }}"
+        {{ 'disabled' if r.button_disabled }}
+      >
+        {{ r.button_label }}
+      </button>
+    </form>
+  </div>
+
+  {% if r.status %}
+    <p class="result-status status-{{ r.status_kind | default('info') }}">{{ r.status }}</p>
+  {% endif %}
+
+  {% if r.torrent %}
+    {% with p_id=r.id, p_pct=r.p_pct, p_label=r.p_label, p_polling=r.p_polling, p_button=None %}
+      {% include "partials/progress.html" %}
+    {% endwith %}
+  {% elif r.added %}
+    {% with p_id=r.id, p_pct=0, p_label='Waiting for qBittorrent...', p_polling=True, p_button=None %}
+      {% include "partials/progress.html" %}
+    {% endwith %}
+  {% else %}
+    <div id="progress-{{ r.id }}" class="result-progress is-empty"></div>
+  {% endif %}
+</li>

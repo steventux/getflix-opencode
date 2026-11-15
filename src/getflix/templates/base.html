@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light" />
+    <title>{% block title %}Getflix{% endblock %}</title>
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='img/getflix-logo.png') }}"
+    />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}" />
+    <script src="{{ url_for('static', filename='vendor/htmx.min.js') }}"></script>
+    <script defer src="{{ url_for('static', filename='js/app.js') }}"></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <span class="topbar-spacer" aria-hidden="true"></span>
+      <a class="brand" href="{{ url_for('getflix.index') }}" aria-label="Getflix home">
+        <span class="brand-wordmark">Getflix</span>
+      </a>
+      <div class="topbar-status">
+        {% if qbittorrent_version %}
+          <span class="status-dot status-ok" title="Connected"></span>
+          <span class="status-text">qBittorrent {{ qbittorrent_version }}</span>
+        {% else %}
+          <span class="status-dot status-bad" title="Not connected"></span>
+          <span class="status-text">qBittorrent offline</span>
+        {% endif %}
+      </div>
+    </header>
+
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+      <span>Getflix</span>
+      <span class="footer-sep">·</span>
+      <span>Searching a local qBittorrent instance</span>
+    </footer>
+  </body>
+</html>

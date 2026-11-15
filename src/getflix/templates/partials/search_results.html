@@ -1,0 +1,89 @@
+{% set query = query | default('') %}
+{% set results = results | default([]) %}
+{% set kind = kind | default('any') %}
+{% set relax = relax | default(false) %}
+{% set error = error | default('') %}
+{% set min_score = min_score | default(0) %}
+{% set total = total | default(0) %}
+
+<div id="results" class="results">
+  {% if error %}
+    <div class="notice notice-error">
+      <strong>Search failed.</strong>
+      <span>{{ error }}</span>
+    </div>
+  {% elif not query %}
+    <p class="hint">
+      Type a movie or TV series above and press <kbd>Enter</kbd>.
+    </p>
+  {% else %}
+    <div class="results-header">
+      <div class="results-count">
+        <strong>{{ total }}</strong>
+        {{ 'result' if total == 1 else 'results' }} for
+        <strong class="results-query">{{ query }}</strong>
+      </div>
+      <div class="filters">
+        <button
+          class="chip-button {{ 'is-active' if kind == 'any' }}"
+          type="button"
+          hx-get="{{ url_for('getflix.search') }}?q={{ query | urlencode }}&kind=any{{ '&relax=1' if relax }}"
+          hx-target="#results"
+          hx-swap="outerHTML"
+        >
+          Everything
+        </button>
+        <button
+          class="chip-button {{ 'is-active' if kind == 'movie' }}"
+          type="button"
+          hx-get="{{ url_for('getflix.search') }}?q={{ query | urlencode }}&kind=movie{{ '&relax=1' if relax }}"
+          hx-target="#results"
+          hx-swap="outerHTML"
+        >
+          Movies
+        </button>
+        <button
+          class="chip-button {{ 'is-active' if kind == 'tv' }}"
+          type="button"
+          hx-get="{{ url_for('getflix.search') }}?q={{ query | urlencode }}&kind=tv{{ '&relax=1' if relax }}"
+          hx-target="#results"
+          hx-swap="outerHTML"
+        >
+          TV series
+        </button>
+        {% if not relax and min_score > 0 %}
+          <button
+            class="chip-button chip-button-muted"
+            type="button"
+            hx-get="{{ url_for('getflix.search') }}?q={{ query | urlencode }}&kind={{ kind }}&relax=1"
+            hx-target="#results"
+            hx-swap="outerHTML"
+          >
+            Relax matching
+          </button>
+        {% elif relax %}
+          <button
+            class="chip-button chip-button-muted"
+            type="button"
+            hx-get="{{ url_for('getflix.search') }}?q={{ query | urlencode }}&kind={{ kind }}"
+            hx-target="#results"
+            hx-swap="outerHTML"
+          >
+            Strict matching
+          </button>
+        {% endif %}
+      </div>
+    </div>
+
+    {% if results %}
+      <ol class="result-list">
+        {% for r in results %} {% include "partials/result_card.html" %} {% endfor %}
+      </ol>
+    {% else %}
+      <p class="hint hint-empty">
+        Nothing matched. Try a shorter title, or use
+        <span class="hint-strong">Relax matching</span> to widen the search.
+      </p>
+    {% endif %}
+  {% endif %}
+</div>

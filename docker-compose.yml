@@ -1,0 +1,165 @@
+name: getflix
+
+# ---------------------------------------------------------------------------
+# Getflix - fuzzy torrent search in front of a qBittorrent that is connected
+# to a VPN with an iptables killswitch.
+#
+#   docker compose up -d
+#
+# The qBittorrent WebUI is published on 127.0.0.1:8080 and Getflix itself on
+# 127.0.0.1:5000, so nothing is reachable from the outside by default.
+# ---------------------------------------------------------------------------
+
+services:
+  # -------------------------------------------------------------------------
+  # Writes a known WebUI password into the qBittorrent configuration before
+  # qBittorrent is started for the first time. The binhex image generates a
+  # random password on the first run, which would change on every restart.
+  # -------------------------------------------------------------------------
+  qbittorrent-init:
+    image: python:3.12-alpine
+    container_name: getflix-qbittorrent-init
+    restart: "no"
+    user: "0:0"
+    command:
+      - sh
+      - -c
+      - |
+        python /scripts/seed_qbittorrent_config.py
+        python /scripts/install_search_plugins.py
+    environment:
+      QBITTORRENT_USERNAME: ${QBITTORRENT_USERNAME:-admin}
+      QBITTORRENT_PASSWORD: ${QBITTORRENT_PASSWORD:-adminadmin}
+      # Subnet of the compose network, requests from it bypass the WebUI
+      # authentication. Leave empty to require the password everywhere.
+      QBITTORRENT_AUTH_SUBNET: ${QBITTORRENT_AUTH_SUBNET-${GETFLIX_DOCKER_SUBNET:-172.28.0.0/16}}
+      QBITTORRENT_CONFIG_DIR: /config/qBittorrent/config
+      QBITTORRENT_SEARCH_PLUGINS: /config/qBittorrent/data/nova3/engines
+      GETFLIX_SAVE_PATH: ${GETFLIX_SAVE_PATH:-/data/getflix}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+    volumes:
+      - ./config/qbittorrent:/config
+      - ./downloads:/data
+      - ./docker/seed_qbittorrent_config.py:/scripts/seed_qbittorrent_config.py:ro
+      - ./docker/install_search_plugins.py:/scripts/install_search_plugins.py:ro
+    networks:
+      - getflix
+
+  # -------------------------------------------------------------------------
+  # qBittorrent behind a VPN (OpenVPN or WireGuard).
+  #
+  # NET_ADMIN is required for the VPN tunnel and for the iptables killswitch
+  # that blocks all traffic which does not go through the tunnel.
+  # -------------------------------------------------------------------------
+  qbittorrent:
+    image: binhex/arch-qbittorrentvpn:latest
+    container_name: getflix-qbittorrent
+    depends_on:
+      qbittorrent-init:
+        condition: service_completed_successfully
+    cap_add:
+      - NET_ADMIN
+    # Uncomment when the container cannot create /dev/net/tun itself.
+    # devices:
+    #   - /dev/net/tun:/dev/net/tun
+    environment:
+      # --- VPN ---------------------------------------------------------
+      VPN_ENABLED: ${VPN_ENABLED:-yes}
+      VPN_CLIENT: ${VPN_CLIENT:-openvpn}
+      # pia | airvpn | protonvpn | custom
+      VPN_PROV: ${VPN_PROV:-custom}
+      VPN_USER: ${VPN_USER:-}
+      VPN_PASS: ${VPN_PASS:-}
+      VPN_REMOTE_SERVER: ${VPN_REMOTE_SERVER:-}
+      VPN_OPTIONS: ${VPN_OPTIONS:-}
+      # Only used by the pia and protonvpn providers.
+      STRICT_PORT_FORWARD: ${STRICT_PORT_FORWARD:-no}
+      # --- network -----------------------------------------------------
+      # Name servers used inside the container, the killswitch blocks DNS
+      # lookups that do not go through the tunnel.
+      NAME_SERVERS: ${NAME_SERVERS:-1.1.1.1,1.0.0.1}
+      # REQUIRED while the VPN is enabled: the container exits without it.
+      # The subnet of your LAN, for example 192.168.1.0/24. Find it with
+      # `ip -o -4 addr show scope global`.
+      LAN_NETWORK: ${LAN_NETWORK:-192.168.1.0/24}
+      # --- application -------------------------------------------------
+      WEBUI_PORT: "8080"
+      ENABLE_PRIVOXY: "no"
+      ENABLE_SOCKS: "no"
+      # The binhex scripts use this password when they talk to the WebUI
+      # API themselves (for example to forward a VPN port).
+      QBITTORRENT_WEBUI_USER: ${QBITTORRENT_USERNAME:-admin}
+      QBITTORRENT_WEBUI_PASSWORD: ${QBITTORRENT_PASSWORD:-adminadmin}
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      UMASK: ${UMASK:-000}
+      DEBUG: ${QBITTORRENT_DEBUG:-false}
+    volumes:
+      # Holds the qBittorrent configuration, the OpenVPN/WireGuard files and
+      # the supervisor log.
+      - ./config/qbittorrent:/config
+      # The download directory, shared with Getflix.
+      - ./downloads:/data
+      - ./docker/qbittorrent-healthcheck.sh:/usr/local/bin/getflix-healthcheck.sh:ro
+    ports:
+      # The WebUI, bound to the loopback interface by default.
+      - "${QBITTORRENT_WEBUI_BIND:-127.0.0.1}:${QBITTORRENT_WEBUI_PORT:-8080}:8080"
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/getflix-healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      # The VPN needs a moment before the WebUI shows up.
+      start_period: 90s
+    restart: unless-stopped
+    networks:
+      - getflix
+
+  # -------------------------------------------------------------------------
+  # The Getflix web interface.
+  # -------------------------------------------------------------------------
+  getflix:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: getflix-opencode:latest
+    container_name: getflix
+    depends_on:
+      qbittorrent:
+        condition: service_started
+    environment:
+      # Inside the compose network qBittorrent is reachable by its service
+      # name, the URL from the .env file is ignored on purpose.
+      QBITTORRENT_URL: http://qbittorrent:8080
+      QBITTORRENT_USERNAME: ${QBITTORRENT_USERNAME:-admin}
+      QBITTORRENT_PASSWORD: ${QBITTORRENT_PASSWORD:-adminadmin}
+      QBITTORRENT_VERIFY_SSL: ${QBITTORRENT_VERIFY_SSL:-true}
+      QBITTORRENT_TIMEOUT: ${QBITTORRENT_TIMEOUT:-30}
+      GETFLIX_SEARCH_TIMEOUT: ${GETFLIX_SEARCH_TIMEOUT:-45}
+      GETFLIX_MAX_RESULTS: ${GETFLIX_MAX_RESULTS:-50}
+      GETFLIX_MIN_SCORE: ${GETFLIX_MIN_SCORE:-45}
+      GETFLIX_SEED_HOURS: ${GETFLIX_SEED_HOURS:-24}
+      # Path inside the qBittorrent container, Getflix only forwards it.
+      GETFLIX_SAVE_PATH: ${GETFLIX_SAVE_PATH:-/data/getflix}
+      GETFLIX_CATEGORY: ${GETFLIX_CATEGORY:-}
+      GETFLIX_TAGS: ${GETFLIX_TAGS:-getflix}
+      GETFLIX_CATEGORIES: ${GETFLIX_CATEGORIES:-}
+      GETFLIX_SECRET_KEY: ${GETFLIX_SECRET_KEY:-}
+      GETFLIX_DEBUG: ${GETFLIX_DEBUG:-false}
+      GETFLIX_HOST: 0.0.0.0
+      GETFLIX_PORT: "5000"
+    ports:
+      - "${GETFLIX_BIND_ADDRESS:-127.0.0.1}:${GETFLIX_PORT:-5000}:5000"
+    restart: unless-stopped
+    networks:
+      - getflix
+
+networks:
+  getflix:
+    driver: bridge
+    ipam:
+      config:
+        # The subnet is also used for the qBittorrent authentication bypass,
+        # change it if it clashes with a network on the host.
+        - subnet: ${GETFLIX_DOCKER_SUBNET:-172.28.0.0/16}

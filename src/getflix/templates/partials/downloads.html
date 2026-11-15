@@ -1,0 +1,48 @@
+{% set torrents = torrents | default([]) %}
+{% set active = active | default([]) %}
+{% set completed = completed | default([]) %}
+{% set error = error | default('') %}
+{% set seed_hours = seed_hours | default(24) %}
+
+<div
+  id="downloads-panel"
+  class="panel"
+  hx-get="{{ url_for('getflix.downloads') }}"
+  hx-trigger="every 3s"
+  hx-swap="outerHTML"
+>
+  <div class="panel-header">
+    <h2 class="panel-title">Downloads</h2>
+    <span class="panel-meta">
+      {{ active | length }} in progress
+      {% if completed %}&middot; {{ completed | length }} completed{% endif %}
+    </span>
+  </div>
+
+  {% if error %}
+    <div class="notice notice-error notice-compact">
+      <strong>qBittorrent unavailable.</strong>
+      <span>{{ error }}</span>
+    </div>
+  {% endif %}
+
+  {% if not torrents and not error %}
+    <p class="hint">No downloads yet. Start one from the search results.</p>
+  {% endif %}
+
+  {% if active %}
+    <ul class="download-list">
+      {% for t in active %} {% include "partials/download_row.html" %} {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if completed %}
+    <div class="panel-subheader">
+      <h3>Completed</h3>
+      <span class="panel-meta">{{ completed | length }}</span>
+    </div>
+    <ul class="download-list download-list-completed">
+      {% for t in completed %} {% include "partials/download_row.html" %} {% endfor %}
+    </ul>
+  {% endif %}
+</div>

@@ -1,0 +1,32 @@
+<div
+  id="progress-{{ p_id }}"
+  class="result-progress"
+  {% if p_polling %}
+  hx-get="{{ url_for('getflix.progress', result_id=p_id) }}"
+  hx-trigger="every 2s"
+  hx-swap="outerHTML"
+  {% endif %}
+>
+  <div class="progress-track">
+    <div
+      class="progress-fill progress-{{ 'complete' if p_pct >= 100 else 'active' }}"
+      style="width: {{ p_pct }}%"
+      role="progressbar"
+      aria-valuenow="{{ p_pct }}"
+      aria-valuemin="0"
+      aria-valuemax="100"
+    ></div>
+  </div>
+  <div class="progress-label">{{ p_label }}</div>
+</div>
+{% if p_button %}
+  <button
+    type="submit"
+    id="download-btn-{{ p_button.id }}"
+    class="button button-done"
+    hx-swap-oob="true"
+    disabled
+  >
+    {{ p_button.label }}
+  </button>
+{% endif %}
