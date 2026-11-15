@@ -61,3 +61,4 @@ def test_getflix_can_read_the_downloads_for_playback():
     getflix = services_block.split("\n  getflix:\n", 1)[1]
     assert "./downloads:/data:ro" in getflix
     assert "GETFLIX_DOWNLOAD_ROOT: ${GETFLIX_DOWNLOAD_ROOT:-/data}" in getflix
+    assert "GETFLIX_VLC_URL_SCHEME: ${GETFLIX_VLC_URL_SCHEME:-true}" in getflix

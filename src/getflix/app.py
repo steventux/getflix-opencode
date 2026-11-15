@@ -47,6 +47,6 @@ def create_app(config: Config | None = None) -> Flask:
 
     @app.context_processor
     def inject_globals() -> dict[str, Any]:
-        return {"config": cfg}
+        return {"config": app.config["GETFLIX"]}
 
     return app

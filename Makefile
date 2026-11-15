@@ -1,5 +1,6 @@
 .PHONY: install run dev test lint format check clean \
-	docker-build docker-up docker-down docker-logs docker-seed docker-config docker-shell
+	docker-build docker-up docker-down docker-logs docker-seed docker-config docker-shell \
+	vlc-handler vlc-handler-remove
 
 DOCKER_COMPOSE ?= docker compose
 
@@ -48,3 +49,9 @@ docker-config:  ## Show the resolved compose configuration
 
 docker-shell:  ## Open a shell in the running Getflix container
 	$(DOCKER_COMPOSE) exec getflix /bin/bash
+
+vlc-handler:  ## Open completed downloads in VLC with a single click
+	./scripts/install-vlc-handler.sh
+
+vlc-handler-remove:  ## Remove the vlc: handler again
+	./scripts/install-vlc-handler.sh --uninstall

@@ -1,9 +1,10 @@
 <li class="download" id="torrent-{{ t.hash }}">
   <div class="download-head">
     {% if t.is_complete %}
+      {% set stream_url = url_for('getflix.torrent_stream', torrent_hash=t.hash, _external=True) %}
       <a
         class="download-name download-name-link"
-        href="{{ url_for('getflix.torrent_playlist', torrent_hash=t.hash) }}"
+        href="{{ ('vlc:' ~ stream_url) if config.vlc_url_scheme else url_for('getflix.torrent_playlist', torrent_hash=t.hash) }}"
         title="Play {{ t.name }} in VLC"
       >{{ t.name }}</a>
     {% else %}
@@ -39,6 +40,11 @@
 
   <div class="download-actions">
     {% if t.is_complete %}
+      <a
+        class="button button-small button-link"
+        href="{{ url_for('getflix.torrent_playlist', torrent_hash=t.hash) }}"
+        title="Download an .m3u playlist instead (no vlc: link handler needed)"
+      >Playlist</a>
       <button
         class="button button-small"
         type="button"

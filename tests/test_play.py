@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from dataclasses import replace
 from pathlib import Path
 
@@ -183,7 +184,7 @@ def test_qbittorrent_being_down_returns_503(client, player):
     assert client.get(f"/play/{'4' * 40}").status_code == 503
 
 
-def test_completed_names_link_to_the_playlist(client, player, make_torrent):
+def test_completed_names_are_vlc_links(client, player, make_torrent):
     fake, root = player
     movie = root / "Dune.mkv"
     movie.write_bytes(b"x")
@@ -193,9 +194,36 @@ def test_completed_names_link_to_the_playlist(client, player, make_torrent):
     )
 
     body = client.get("/downloads").get_data(as_text=True)
+    name_link = re.search(
+        r'<a\s+class="download-name download-name-link"\s+href="([^"]+)"', body
+    )
 
-    assert f'href="/play/{torrent_hash}/playlist.m3u"' in body
+    assert name_link is not None
+    assert name_link.group(1) == f"vlc:http://localhost/play/{torrent_hash}"
     assert "Play Dune (2021) in VLC" in body
+    # The .m3u playlist stays available for people without the handler.
+    assert f'href="/play/{torrent_hash}/playlist.m3u"' in body
+    assert ">Playlist</a>" in body
+
+
+def test_the_playlist_can_be_the_primary_link(client, player, make_torrent, app):
+    fake, root = player
+    movie = root / "Dune.mkv"
+    movie.write_bytes(b"x")
+    torrent_hash = "9" * 40
+    fake.torrents.append(_finished(make_torrent, movie, hash=torrent_hash))
+    app.config["GETFLIX"] = replace(
+        app.config["GETFLIX"], vlc_url_scheme=False
+    )
+
+    body = client.get("/downloads").get_data(as_text=True)
+    name_link = re.search(
+        r'<a\s+class="download-name download-name-link"\s+href="([^"]+)"', body
+    )
+
+    assert name_link is not None
+    assert name_link.group(1) == f"/play/{torrent_hash}/playlist.m3u"
+    assert "vlc:http" not in body
 
 
 def test_names_of_running_downloads_are_not_links(client, player, make_torrent):

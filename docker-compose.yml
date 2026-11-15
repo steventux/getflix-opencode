@@ -144,6 +144,8 @@ services:
       GETFLIX_SAVE_PATH: ${GETFLIX_SAVE_PATH:-/data/getflix}
       # Completed downloads are streamed from here when you click them.
       GETFLIX_DOWNLOAD_ROOT: ${GETFLIX_DOWNLOAD_ROOT:-/data}
+      # One click opens them in VLC (needs the vlc: handler, see README).
+      GETFLIX_VLC_URL_SCHEME: ${GETFLIX_VLC_URL_SCHEME:-true}
       GETFLIX_CATEGORY: ${GETFLIX_CATEGORY:-}
       GETFLIX_TAGS: ${GETFLIX_TAGS:-getflix}
       GETFLIX_CATEGORIES: ${GETFLIX_CATEGORIES:-}

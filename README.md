@@ -26,9 +26,9 @@ download with one click. Progress bars update live while you keep searching.
 - **Seed for a day.** Torrents are added with a maximum seeding time of 24
   hours (1440 minutes) so qBittorrent stops them afterwards. Existing
   torrents can be given the same limit with the *Seed 24h* button.
-- **Play finished downloads.** The name of a completed download is a link to
-  a small `.m3u` playlist, which VLC opens by default - the video streams
-  straight from Getflix.
+- **Play finished downloads in one click.** The name of a completed download
+  is a `vlc:` link, so the click goes straight to VLC, which streams the
+  file from Getflix. A *Playlist* button provides the `.m3u` fallback.
 
 ## Requirements
 
@@ -71,6 +71,7 @@ cp .env.example .env
 | `GETFLIX_CATEGORIES` | – | Only list these qBittorrent search categories |
 | `GETFLIX_DOWNLOAD_ROOT` | `/data` | Download directory as Getflix sees it |
 | `GETFLIX_QBITTORRENT_DOWNLOAD_ROOT` | `/data` | The same directory as qBittorrent reports it |
+| `GETFLIX_VLC_URL_SCHEME` | `true` | Link completed downloads with a `vlc:` URL |
 | `GETFLIX_HOST` / `GETFLIX_PORT` | `127.0.0.1` / `5000` | Where Getflix listens |
 | `GETFLIX_SECRET_KEY` | random | Fixed Flask session secret (optional) |
 | `GETFLIX_DEBUG` | `false` | Enable the Flask debugger and auto reload |
@@ -91,11 +92,28 @@ Then open <http://127.0.0.1:5000>.
 
 ## Playing finished downloads
 
-When a download has finished, its name in the Downloads panel becomes a link.
-Clicking it downloads a tiny `.m3u` playlist that points at the file. VLC is
-the default handler for playlists on most desktops, so the video opens in VLC
-and is streamed by Getflix - no copy of a 40 GB remux ends up in the browser
-cache.
+When a download has finished, its name in the Downloads panel becomes a link
+to `vlc:http://127.0.0.1:5000/play/<info hash>`. A click hands the stream to
+VLC directly - no download, no extra tab, and the video is streamed by Getflix
+(no copy of a 40 GB remux ends up in the browser cache).
+
+Register the `vlc:` handler once. It needs no root and no browser extension:
+
+```bash
+./scripts/install-vlc-handler.sh    # or: make vlc-handler
+```
+
+The script installs a tiny helper in `~/.local/bin`, registers a desktop entry
+for `x-scheme-handler/vlc` with `xdg-mime`, and checks that it worked. Browsers
+hand unknown schemes to the desktop, so the first click may ask for
+confirmation ("Open Getflix VLC Links?") - allow it once. Remove the handler
+again with `./scripts/install-vlc-handler.sh --uninstall`
+(or `make vlc-handler-remove`).
+
+Every completed download also has a **Playlist** button that downloads a small
+`.m3u` file (VLC opens it, too). Set `GETFLIX_VLC_URL_SCHEME=false` to make the
+name itself point at that playlist instead of `vlc:`, for browsers or
+machines without the handler.
 
 Getflix serves the file itself and therefore has to see the download
 directory:
@@ -104,6 +122,7 @@ directory:
 | --- | --- | --- |
 | `GETFLIX_DOWNLOAD_ROOT` | `/data` | The download directory as Getflix sees it |
 | `GETFLIX_QBITTORRENT_DOWNLOAD_ROOT` | `/data` | The same directory as qBittorrent reports it |
+| `GETFLIX_VLC_URL_SCHEME` | `true` | Link completed downloads with a `vlc:` URL |
 
 The Docker stack mounts `./downloads` read only at `/data` in both containers,
 so nothing has to be configured. When Getflix runs on the host instead:
@@ -119,8 +138,9 @@ Only files of completed torrents are served, and only from inside
 `GETFLIX_DOWNLOAD_ROOT`. Range requests are supported, so seeking in VLC
 works. A multi file torrent plays its largest video file.
 
-If clicking the name only saves the playlist, open the downloaded `.m3u` once
-and VLC takes over. The stream itself is available at
+If a click does nothing, check the handler with
+`xdg-mime query default x-scheme-handler/vlc` - it should print
+`getflix-vlc.desktop` - and re-run the installer. The stream itself is at
 `http://127.0.0.1:5000/play/<info hash>`, which can also be opened with
 *Media -> Open Network Stream* in VLC.
 

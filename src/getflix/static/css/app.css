@@ -691,6 +691,12 @@ kbd {
   text-decoration: underline;
 }
 
+.button-link,
+.button-link:hover {
+  display: inline-block;
+  text-decoration: none;
+}
+
 .download-state {
   flex: none;
   font-size: 12px;

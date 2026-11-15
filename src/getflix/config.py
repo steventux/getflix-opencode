@@ -80,6 +80,8 @@ class Config:
     download_root: str = "/data"
     #: The same directory as qBittorrent reports it (for host installations).
     qbittorrent_download_root: str = "/data"
+    #: Link finished downloads with a vlc: URL so one click opens the player.
+    vlc_url_scheme: bool = True
 
     host: str = "127.0.0.1"
     port: int = 5000
@@ -111,6 +113,7 @@ class Config:
                 "GETFLIX_QBITTORRENT_DOWNLOAD_ROOT", "/data"
             )
             or "/data",
+            vlc_url_scheme=_get_bool("GETFLIX_VLC_URL_SCHEME", True),
             host=_get_str("GETFLIX_HOST", "127.0.0.1") or "127.0.0.1",
             port=_get_int("GETFLIX_PORT", 5000),
             debug=_get_bool("GETFLIX_DEBUG", False),
