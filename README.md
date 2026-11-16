@@ -12,8 +12,8 @@ download with one click. Progress bars update live while you keep searching.
 
 ## Features
 
-- **Fuzzy search** for movies and TV series. Release names such as
-  `Dune.Part.Two.2024.1080p.WEB-DL.x264-GROUP` are parsed into a title, year,
+- **Fuzzy search** for results. Release names such as
+  `A.Movie.Part.Two.2024.1080p.WEB-DL.x264-GROUP` are parsed into a title, year,
   season/episode and quality, then scored against your query with
   [RapidFuzz](https://github.com/rapidfuzz/RapidFuzz).
 - **Only results with seeders** (`seeders > 0`) are ever listed.
