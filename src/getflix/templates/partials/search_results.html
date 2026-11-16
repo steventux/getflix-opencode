@@ -12,11 +12,7 @@
       <strong>Search failed.</strong>
       <span>{{ error }}</span>
     </div>
-  {% elif not query %}
-    <p class="hint">
-      Type a movie or TV series above and press <kbd>Enter</kbd>.
-    </p>
-  {% else %}
+  {% elif query %}
     <div class="results-header">
       <div class="results-count">
         <strong>{{ total }}</strong>

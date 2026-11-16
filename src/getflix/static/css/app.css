@@ -136,7 +136,7 @@ a:hover {
 
 /* ------------------------------------------------------------------ hero */
 .hero {
-  padding: 56px 0 24px;
+  padding: 56px 0 8px;
   text-align: center;
 }
 
@@ -226,13 +226,20 @@ a:hover {
 }
 
 .search-indicator {
-  display: flex;
+  /* Only takes up space while a search is running, so the results and the
+     downloads panel stay close to the search box. */
+  display: none;
   align-items: center;
   justify-content: center;
   gap: 10px;
   margin-top: 16px;
   color: var(--muted);
   font-size: 13px;
+}
+
+.search-indicator.htmx-request,
+.search-form.htmx-request .search-indicator {
+  display: flex;
 }
 
 .spinner {
@@ -340,7 +347,7 @@ a:hover {
 
 /* ---------------------------------------------------------------- results */
 .results-section {
-  margin-top: 12px;
+  margin-top: 8px;
 }
 
 .results-header {
@@ -372,7 +379,7 @@ a:hover {
   color: var(--muted);
   font-size: 14px;
   text-align: center;
-  padding: 28px 12px;
+  padding: 20px 12px;
 }
 
 .hint-empty {
@@ -383,16 +390,6 @@ a:hover {
 .hint-strong {
   color: var(--text-soft);
   font-weight: 500;
-}
-
-kbd {
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
-  border-bottom-width: 2px;
-  border-radius: 4px;
-  padding: 1px 5px;
-  font-family: var(--font);
-  font-size: 12px;
 }
 
 /* result list */
@@ -601,7 +598,7 @@ kbd {
 
 /* ----------------------------------------------------------------- panel */
 .downloads-section {
-  margin-top: 40px;
+  margin-top: 20px;
 }
 
 .panel {
@@ -768,7 +765,7 @@ kbd {
   }
 
   .hero {
-    padding: 36px 0 16px;
+    padding: 36px 0 8px;
   }
 
   .hero-title {

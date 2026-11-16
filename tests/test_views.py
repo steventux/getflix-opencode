@@ -101,10 +101,13 @@ def test_search_reports_qbittorrent_errors(client, fake):
     assert "WebUI is down" in response.get_data(as_text=True)
 
 
-def test_search_without_a_query_shows_a_hint(client, fake):
+def test_search_without_a_query_renders_no_results_or_hint(client):
     response = client.get("/search")
+    body = response.get_data(as_text=True)
+
     assert response.status_code == 200
-    assert "Type a movie" in response.get_data(as_text=True)
+    assert "Type a movie" not in body
+    assert 'id="results"' in body
 
 
 def test_search_can_be_filtered_by_media_type(client, fake, make_hit):
