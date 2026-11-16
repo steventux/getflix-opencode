@@ -16,9 +16,15 @@
   <body>
     <header class="topbar">
       <span class="topbar-spacer" aria-hidden="true"></span>
-      <a class="brand" href="{{ url_for('getflix.index') }}" aria-label="Getflix home">
-        <span class="brand-wordmark">Getflix</span>
-      </a>
+      <h1 class="brand">
+        <a
+          class="brand-link"
+          href="{{ url_for('getflix.index') }}"
+          aria-label="Getflix home"
+        >
+          <span class="brand-wordmark">Getflix</span>
+        </a>
+      </h1>
       <div class="topbar-status">
         {% if qbittorrent_version %}
           <a

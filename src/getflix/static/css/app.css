@@ -74,24 +74,28 @@ a:hover {
   align-items: center;
   gap: 16px;
   padding: 18px 28px;
-  border-bottom: 1px solid var(--border-soft);
 }
 
 .brand {
   display: inline-flex;
   align-items: center;
   justify-self: center;
-  text-decoration: none;
-  color: var(--text);
+  margin: 0;
+  font-weight: inherit;
 }
 
-.brand:hover {
+.brand-link {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.brand-link:hover {
   text-decoration: none;
 }
 
 .brand-wordmark {
   font-family: "Libre Barcode 39 Text", var(--font);
-  font-size: 44px;
+  font-size: 88px;
   font-weight: 400;
   line-height: 1;
   letter-spacing: 0.02em;
@@ -148,15 +152,7 @@ a:hover {
 
 /* ------------------------------------------------------------------ hero */
 .hero {
-  padding: 56px 0 8px;
-  text-align: center;
-}
-
-.hero-title {
-  font-size: 28px;
-  font-weight: 500;
-  margin: 0 0 28px;
-  letter-spacing: -0.2px;
+  padding: 28px 0 8px;
 }
 
 /* ------------------------------------------------------------ search box */
@@ -765,7 +761,7 @@ a:hover {
   }
 
   .brand-wordmark {
-    font-size: 34px;
+    font-size: 56px;
   }
 
   .topbar-status .status-text {
@@ -777,11 +773,7 @@ a:hover {
   }
 
   .hero {
-    padding: 36px 0 8px;
-  }
-
-  .hero-title {
-    font-size: 22px;
+    padding: 20px 0 8px;
   }
 
   .result-main {
