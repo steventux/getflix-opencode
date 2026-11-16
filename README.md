@@ -7,7 +7,8 @@ Type a movie or TV series, Getflix asks the qBittorrent search plugins for
 candidates, fuzzy-matches them against your query, and lets you start the
 download with one click. Progress bars update live while you keep searching.
 
-![Getflix](https://github.com/steventux/getflix/assets/93511/53abcfe3-aac2-4b02-8e44-2ceaa399e14f)
+<img width="1386" height="381" alt="image" src="https://github.com/user-attachments/assets/83515819-e7c9-4c0d-96af-99a4da703bb2" />
+
 
 ## Features
 
