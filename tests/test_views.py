@@ -131,6 +131,24 @@ def test_search_without_a_query_renders_no_results_or_hint(client):
     assert 'id="results"' in body
 
 
+def test_search_hides_excluded_sites(app, client, fake, make_hit):
+    fake.hits = [
+        make_hit(
+            "Dune.2021.1080p.BluRay.x264",
+            site_url="https://www.limetorrents.lol",
+        ),
+        make_hit("Dune.2021.1080p.WEBRip.x264", site_url="https://1337x.to"),
+    ]
+    app.config["GETFLIX"] = replace(
+        app.config["GETFLIX"], excluded_sites=("www.limetorrents.lol",)
+    )
+
+    body = client.get("/search?q=dune").get_data(as_text=True)
+
+    assert "Dune.2021.1080p.BluRay.x264" not in body
+    assert "Dune.2021.1080p.WEBRip.x264" in body
+
+
 def test_search_can_be_filtered_by_media_type(client, fake, make_hit):
     fake.hits = [
         make_hit("The.Office.S03E04.HDTV.x264"),

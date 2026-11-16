@@ -73,6 +73,7 @@ cp .env.example .env
 | `GETFLIX_CATEGORY` | – | Optional qBittorrent category |
 | `GETFLIX_TAGS` | `getflix` | Comma separated qBittorrent tags |
 | `GETFLIX_CATEGORIES` | – | Only list these qBittorrent search categories |
+| `GETFLIX_EXCLUDED_SITES` | – | Host names to hide from the results (subdomains included) |
 | `GETFLIX_DOWNLOAD_ROOT` | `/data` | Download directory as Getflix sees it |
 | `GETFLIX_QBITTORRENT_DOWNLOAD_ROOT` | `/data` | The same directory as qBittorrent reports it |
 | `GETFLIX_VLC_URL_SCHEME` | `true` | Link completed downloads with a `vlc:` URL |

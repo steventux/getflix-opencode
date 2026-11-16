@@ -188,6 +188,7 @@ def _run_search(
         min_score=min_score,
         limit=cfg.max_results,
         categories=cfg.categories,
+        excluded_sites=cfg.excluded_sites,
     )
     if kind != "any":
         ranked = [(score, hit) for score, hit in ranked if media_type(hit.file_name) == kind]

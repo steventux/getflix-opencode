@@ -78,6 +78,8 @@ class Config:
     category: str | None = None
     tags: tuple[str, ...] = ("getflix",)
     categories: tuple[str, ...] = field(default_factory=tuple)
+    #: Host names whose search results are hidden (subdomains included).
+    excluded_sites: tuple[str, ...] = field(default_factory=tuple)
 
     #: Where the downloads are mounted, as Getflix sees them.
     download_root: str = "/data"
@@ -117,6 +119,7 @@ class Config:
             category=_get_str("GETFLIX_CATEGORY"),
             tags=_get_list("GETFLIX_TAGS") or ("getflix",),
             categories=_get_list("GETFLIX_CATEGORIES"),
+            excluded_sites=_get_list("GETFLIX_EXCLUDED_SITES"),
             download_root=_get_str("GETFLIX_DOWNLOAD_ROOT", "/data") or "/data",
             qbittorrent_download_root=_get_str(
                 "GETFLIX_QBITTORRENT_DOWNLOAD_ROOT", "/data"

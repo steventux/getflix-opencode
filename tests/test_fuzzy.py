@@ -117,6 +117,52 @@ def test_rank_hits_can_filter_by_category():
     assert ranked[0][1]["category"] == "Movies"
 
 
+def test_rank_hits_can_exclude_sites():
+    hits = [
+        {
+            "file_name": "Dune.2021.1080p",
+            "seeders": 5,
+            "site_url": "https://www.limetorrents.lol",
+        },
+        {"file_name": "Dune.2021.1080p", "seeders": 5, "site_url": "https://1337x.to"},
+    ]
+    ranked = rank_hits("dune", hits, excluded_sites=("www.limetorrents.lol",))
+    assert [hit["site_url"] for _, hit in ranked] == ["https://1337x.to"]
+
+
+def test_excluded_sites_match_bare_hosts_and_subdomains_only():
+    hits = [
+        {
+            "file_name": "Dune.2021.1080p",
+            "seeders": 5,
+            "site_url": "https://m.limetorrents.lol",
+        },
+        {
+            "file_name": "Dune.2021.1080p",
+            "seeders": 5,
+            "site_url": "https://limetorrents.lol",
+        },
+        {
+            "file_name": "Dune.2021.1080p",
+            "seeders": 5,
+            "site_url": "https://notlimetorrents.lol",
+        },
+    ]
+    ranked = rank_hits("dune", hits, excluded_sites=("limetorrents.lol",))
+    assert [hit["site_url"] for _, hit in ranked] == ["https://notlimetorrents.lol"]
+
+
+def test_excluded_sites_fall_back_to_the_file_url():
+    hits = [
+        {
+            "file_name": "Dune.2021.1080p",
+            "seeders": 5,
+            "file_url": "https://www.limetorrents.lol/Dune.torrent",
+        }
+    ]
+    assert rank_hits("dune", hits, excluded_sites=("www.limetorrents.lol",)) == []
+
+
 def test_rank_hits_limits_the_result_count():
     hits = [{"file_name": "Dune.2021.1080p", "seeders": 5} for _ in range(10)]
     assert len(rank_hits("dune", hits, limit=3)) == 3

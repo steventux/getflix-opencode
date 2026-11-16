@@ -153,6 +153,8 @@ services:
       GETFLIX_CATEGORY: ${GETFLIX_CATEGORY:-}
       GETFLIX_TAGS: ${GETFLIX_TAGS:-getflix}
       GETFLIX_CATEGORIES: ${GETFLIX_CATEGORIES:-}
+      # Comma separated host names whose results are hidden.
+      GETFLIX_EXCLUDED_SITES: ${GETFLIX_EXCLUDED_SITES:-}
       GETFLIX_SECRET_KEY: ${GETFLIX_SECRET_KEY:-}
       GETFLIX_DEBUG: ${GETFLIX_DEBUG:-false}
       GETFLIX_HOST: 0.0.0.0

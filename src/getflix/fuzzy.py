@@ -20,6 +20,7 @@ import re
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
 from typing import Any
+from urllib.parse import urlparse
 
 from rapidfuzz import fuzz
 
@@ -379,6 +380,30 @@ def _hits_attr(hit: Any, name: str, default: Any = None) -> Any:
     return getattr(hit, name, default)
 
 
+def _site_host(value: str) -> str:
+    """The lower case host of a URL or bare host name, without a leading www."""
+    text = str(value or "").strip().lower()
+    if not text:
+        return ""
+    if "//" not in text:
+        text = f"//{text}"
+    host = urlparse(text).hostname or ""
+    return host.removeprefix("www.")
+
+
+def _is_excluded_site(hit: Any, blocked: set[str]) -> bool:
+    """Whether ``hit`` comes from one of the blocked hosts (or a subdomain)."""
+    hosts = {
+        _site_host(str(_hits_attr(hit, "site_url", "") or "")),
+        _site_host(str(_hits_attr(hit, "details_url", "") or "")),
+        _site_host(str(_hits_attr(hit, "file_url", "") or "")),
+    }
+    hosts.discard("")
+    return any(
+        host == site or host.endswith(f".{site}") for host in hosts for site in blocked
+    )
+
+
 def rank_hits(
     query: str,
     hits: Iterable[Any],
@@ -386,18 +411,25 @@ def rank_hits(
     min_score: float = 0.0,
     limit: int | None = None,
     categories: Sequence[str] = (),
+    excluded_sites: Sequence[str] = (),
 ) -> list[tuple[float, Any]]:
     """Filter and rank search hits.
 
     Only results with at least one seeder are returned.  ``categories`` is an
     optional list of qBittorrent search categories to keep; results without a
     category are always kept because most plugins do not report one.
+    ``excluded_sites`` lists host names (for example ``limetorrents.lol``)
+    whose results are dropped, including their subdomains.
     """
     parsed_query = parse_query(query)
     allowed = {c.lower() for c in categories if c}
+    blocked = {_site_host(site) for site in excluded_sites if str(site or "").strip()}
     ranked: list[tuple[float, Any]] = []
 
     for hit in hits:
+        if blocked and _is_excluded_site(hit, blocked):
+            continue
+
         seeders = int(_hits_attr(hit, "seeders", 0) or 0)
         if seeders <= 0:
             continue
