@@ -29,6 +29,8 @@ download with one click. Progress bars update live while you keep searching.
 - **Play finished downloads in one click.** The name of a completed download
   is a `vlc:` link, so the click goes straight to VLC, which streams the
   file from Getflix. A *Playlist* button provides the `.m3u` fallback.
+- **Jump to qBittorrent.** The version in the top right corner links to the
+  qBittorrent WebUI, so the admin interface is one click away.
 
 ## Requirements
 
@@ -61,6 +63,7 @@ cp .env.example .env
 | `QBITTORRENT_PASSWORD` | `adminadmin` | WebUI password |
 | `QBITTORRENT_VERIFY_SSL` | `true` | Set to `false` for self signed certificates |
 | `QBITTORRENT_TIMEOUT` | `30` | Per request timeout in seconds |
+| `GETFLIX_QBITTORRENT_WEBUI_URL` | `QBITTORRENT_URL` | Where your browser reaches the WebUI, for the status link |
 | `GETFLIX_SEARCH_TIMEOUT` | `45` | How long a single search may run |
 | `GETFLIX_MAX_RESULTS` | `50` | Maximum number of results shown |
 | `GETFLIX_MIN_SCORE` | `45` | Minimum fuzzy score (0 disables the filter) |

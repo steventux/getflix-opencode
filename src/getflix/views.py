@@ -143,7 +143,7 @@ def index() -> str:
 
     return render_template(
         "index.html",
-        qbittorrent_url=client.base_url,
+        qbittorrent_webui_url=_config().webui_url,
         qbittorrent_version=version,
         connection_error=error,
         seed_hours=_config().seed_hours,

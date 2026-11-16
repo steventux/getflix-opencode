@@ -136,6 +136,10 @@ services:
       QBITTORRENT_PASSWORD: ${QBITTORRENT_PASSWORD:-adminadmin}
       QBITTORRENT_VERIFY_SSL: ${QBITTORRENT_VERIFY_SSL:-true}
       QBITTORRENT_TIMEOUT: ${QBITTORRENT_TIMEOUT:-30}
+      # Where your browser reaches the WebUI; the URL above is internal to the
+      # compose network. Point this at your LAN address if you browse from
+      # another machine (and publish the WebUI on that interface).
+      GETFLIX_QBITTORRENT_WEBUI_URL: ${GETFLIX_QBITTORRENT_WEBUI_URL:-http://127.0.0.1:8080}
       GETFLIX_SEARCH_TIMEOUT: ${GETFLIX_SEARCH_TIMEOUT:-45}
       GETFLIX_MAX_RESULTS: ${GETFLIX_MAX_RESULTS:-50}
       GETFLIX_MIN_SCORE: ${GETFLIX_MIN_SCORE:-45}

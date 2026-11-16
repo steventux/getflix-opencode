@@ -21,8 +21,16 @@
       </a>
       <div class="topbar-status">
         {% if qbittorrent_version %}
-          <span class="status-dot status-ok" title="Connected"></span>
-          <span class="status-text">qBittorrent {{ qbittorrent_version }}</span>
+          <a
+            class="topbar-status-link"
+            href="{{ qbittorrent_webui_url }}"
+            target="_blank"
+            rel="noopener"
+            title="Open the qBittorrent web UI"
+          >
+            <span class="status-dot status-ok" title="Connected"></span>
+            <span class="status-text">qBittorrent {{ qbittorrent_version }}</span>
+          </a>
         {% else %}
           <span class="status-dot status-bad" title="Not connected"></span>
           <span class="status-text">qBittorrent offline</span>

@@ -61,6 +61,9 @@ class Config:
     """Everything the application needs to know about its environment."""
 
     qbittorrent_url: str = "http://localhost:8080"
+    #: The WebUI as the browser reaches it. Falls back to the URL above, which
+    #: is only correct when Getflix and qBittorrent share a network namespace.
+    qbittorrent_webui_url: str = ""
     qbittorrent_username: str = "admin"
     qbittorrent_password: str = "adminadmin"
     qbittorrent_verify_ssl: bool = True
@@ -92,10 +95,16 @@ class Config:
         """The share limit handed to qBittorrent, in minutes (1 day == 1440)."""
         return max(1, self.seed_hours) * 60
 
+    @property
+    def webui_url(self) -> str:
+        """The qBittorrent WebUI, as the browser reaches it."""
+        return (self.qbittorrent_webui_url or self.qbittorrent_url).rstrip("/")
+
     @classmethod
     def from_env(cls) -> Config:
         return cls(
             qbittorrent_url=_get_str("QBITTORRENT_URL", "http://localhost:8080") or "",
+            qbittorrent_webui_url=_get_str("GETFLIX_QBITTORRENT_WEBUI_URL", "") or "",
             qbittorrent_username=_get_str("QBITTORRENT_USERNAME", "admin") or "admin",
             qbittorrent_password=_get_str("QBITTORRENT_PASSWORD", "adminadmin") or "",
             qbittorrent_verify_ssl=_get_bool("QBITTORRENT_VERIFY_SSL", True),

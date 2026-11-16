@@ -108,6 +108,18 @@ a:hover {
   white-space: nowrap;
 }
 
+.topbar-status-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+}
+
+.topbar-status-link:hover {
+  color: var(--text);
+  text-decoration: none;
+}
+
 .status-dot {
   width: 8px;
   height: 8px;

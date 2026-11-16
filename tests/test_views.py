@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
+
 import pytest
 
 from getflix.qbittorrent import QBittorrentError
@@ -76,6 +78,25 @@ def test_index_renders(client, fake):
     body = response.get_data(as_text=True)
     assert "Getflix" in body
     assert "qBittorrent 5.0.4" in body
+
+
+def test_the_version_links_to_the_qbittorrent_webui(client, fake):
+    body = client.get("/").get_data(as_text=True)
+
+    assert 'href="http://qbit.test:8080"' in body
+    assert 'title="Open the qBittorrent web UI"' in body
+    assert "qBittorrent 5.0.4" in body
+
+
+def test_the_webui_link_can_be_configured_separately(app, client, fake):
+    app.config["GETFLIX"] = replace(
+        app.config["GETFLIX"],
+        qbittorrent_webui_url="http://127.0.0.1:8080/",
+    )
+
+    body = client.get("/").get_data(as_text=True)
+
+    assert 'href="http://127.0.0.1:8080"' in body
 
 
 def test_search_returns_matching_results(client, fake, make_hit):
